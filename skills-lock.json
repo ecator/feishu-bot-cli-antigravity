@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "google-antigravity-sdk": {
+      "source": "google-antigravity/antigravity-sdk-python",
+      "sourceType": "github",
+      "skillPath": "skills/google-antigravity-sdk/SKILL.md",
+      "computedHash": "0196ffb09573e13303ddc47644ea22ec43b165bc28168a39aabda8cd4ebefd8a"
+    }
+  }
+}
