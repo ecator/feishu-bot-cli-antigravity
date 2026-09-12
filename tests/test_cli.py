@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -404,30 +405,30 @@ def test_cli_main_version_without_env_credentials(monkeypatch, tmp_path, capsys)
 
 
 @patch("feishu_bot_cli_antigravity.cli.run_listen")
-
-def test_cli_main_startup_prints_version_on_listen(mock_run_listen, monkeypatch, capsys):
+def test_cli_main_startup_prints_version_on_listen(mock_run_listen, monkeypatch, caplog):
     from feishu_bot_cli_antigravity import __version__
 
     monkeypatch.setenv("LARK_APP_ID", "cli_test")
     monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
 
-    ret = main(["listen"])
+    with caplog.at_level(logging.INFO):
+        ret = main(["listen"])
     assert ret == 0
-    captured = capsys.readouterr()
-    assert f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}" in captured.out
+    assert f"版本<{__version__}>开始运行" in caplog.text
 
 
 @patch("feishu_bot_cli_antigravity.cli.run_send")
-def test_cli_main_startup_prints_version_on_send(mock_run_send, monkeypatch, capsys):
+def test_cli_main_startup_prints_version_on_send(mock_run_send, monkeypatch, caplog):
     from feishu_bot_cli_antigravity import __version__
 
     monkeypatch.setenv("LARK_APP_ID", "cli_test")
     monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
 
-    ret = main(["send", "-c", "oc_target", "-m", "test"])
+    with caplog.at_level(logging.INFO):
+        ret = main(["send", "-c", "oc_target", "-m", "test"])
     assert ret == 0
-    captured = capsys.readouterr()
-    assert f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}" in captured.out
+    assert f"版本<{__version__}>开始运行" in caplog.text
+
 
 
 

@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import contextlib
+import logging
 import sys
 from pathlib import Path
 
@@ -8,6 +9,8 @@ from . import __version__
 from .channel import FeishuBotChannel
 from .config import Config, load_env_file
 from .utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -223,7 +226,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"feishu-bot-cli-antigravity {__version__}")
         return 0
 
-    print(f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}")
 
     # 统一在此处调用一次 load_env_file 加载环境变量：若指定了 work_dir 且存在 .env 则优先加载，否则从当前目录查找加载
     work_dir = getattr(args, "work_dir", None)
@@ -251,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[ERROR] 配置错误: {e}", file=sys.stderr)
         return 1
 
+    logger.info("版本<%s>开始运行...", __version__)
     try:
         if args.command in ("listen", "serve"):
             asyncio.run(run_listen(args.chat_id, config, work_dir=work_dir))
