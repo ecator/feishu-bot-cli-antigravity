@@ -4,6 +4,7 @@ import contextlib
 import sys
 from pathlib import Path
 
+from . import __version__
 from .channel import FeishuBotChannel
 from .config import Config, load_env_file
 from .utils import setup_logging
@@ -90,6 +91,18 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["markdown", "text"],
         default="markdown",
         help="消息类型: markdown (默认) 或 text",
+    )
+
+    # 3. 版本信息子命令 (version)
+    version_parser = subparsers.add_parser(
+        "version",
+        help="输出当前版本信息",
+    )
+    version_parser.add_argument(
+        "--short",
+        "-s",
+        action="store_true",
+        help="仅输出版本号",
     )
 
     return parser
@@ -202,6 +215,15 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = create_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "version":
+        if getattr(args, "short", False):
+            print(__version__)
+        else:
+            print(f"feishu-bot-cli-antigravity {__version__}")
+        return 0
+
+    print(f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}")
 
     # 统一在此处调用一次 load_env_file 加载环境变量：若指定了 work_dir 且存在 .env 则优先加载，否则从当前目录查找加载
     work_dir = getattr(args, "work_dir", None)

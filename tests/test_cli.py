@@ -350,6 +350,87 @@ def test_cli_main_send_with_nonexistent_work_dir(mock_run_send, tmp_path, monkey
     mock_run_send.assert_not_called()
 
 
+def test_cli_parser_version():
+    parser = create_parser()
+
+    args1 = parser.parse_args(["version"])
+    assert args1.command == "version"
+    assert args1.short is False
+
+    args2 = parser.parse_args(["version", "-s"])
+    assert args2.command == "version"
+    assert args2.short is True
+
+    args3 = parser.parse_args(["version", "--short"])
+    assert args3.command == "version"
+    assert args3.short is True
+
+
+def test_cli_main_version_subcommand(capsys):
+    from feishu_bot_cli_antigravity import __version__
+
+    ret = main(["version"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert captured.out.strip() == f"feishu-bot-cli-antigravity {__version__}"
+
+
+def test_cli_main_version_short_flags(capsys):
+    from feishu_bot_cli_antigravity import __version__
+
+    ret1 = main(["version", "-s"])
+    assert ret1 == 0
+    captured1 = capsys.readouterr()
+    assert captured1.out.strip() == __version__
+
+    ret2 = main(["version", "--short"])
+    assert ret2 == 0
+    captured2 = capsys.readouterr()
+    assert captured2.out.strip() == __version__
+
+
+def test_cli_main_version_without_env_credentials(monkeypatch, tmp_path, capsys):
+    from feishu_bot_cli_antigravity import __version__
+
+    # 模拟未配置任何环境变量或凭据，version 命令依然可以正常执行
+    monkeypatch.delenv("LARK_APP_ID", raising=False)
+    monkeypatch.delenv("LARK_APP_SECRET", raising=False)
+    monkeypatch.chdir(tmp_path)
+
+    ret = main(["version"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert f"feishu-bot-cli-antigravity {__version__}" in captured.out
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_listen")
+
+def test_cli_main_startup_prints_version_on_listen(mock_run_listen, monkeypatch, capsys):
+    from feishu_bot_cli_antigravity import __version__
+
+    monkeypatch.setenv("LARK_APP_ID", "cli_test")
+    monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
+
+    ret = main(["listen"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}" in captured.out
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_send")
+def test_cli_main_startup_prints_version_on_send(mock_run_send, monkeypatch, capsys):
+    from feishu_bot_cli_antigravity import __version__
+
+    monkeypatch.setenv("LARK_APP_ID", "cli_test")
+    monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
+
+    ret = main(["send", "-c", "oc_target", "-m", "test"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert f"[INFO] feishu-bot-cli-antigravity 版本: {__version__}" in captured.out
+
+
+
 
 
 
