@@ -1,4 +1,4 @@
-# Feishu Bot Cli Antigravity
+# Feishu Bot CLI Antigravity
 
 基于 Google Antigravity SDK 和飞书开放平台构建的私人 AI 助手机器人命令行工具。
 
@@ -44,10 +44,10 @@ LOG_LEVEL=INFO
 
 ```bash
 # 监听所有会话
-uv run feishu-bot listen
+uvx feishu-bot-cli-antigravity listen
 
 # 仅监听并响应指定 chat_id 的消息
-uv run feishu-bot listen --chat-id <oc_xxxxxxxxxxxx>
+uvx feishu-bot-cli-antigravity listen --chat-id <oc_xxxxxxxxxxxx>
 ```
 
 ### 2. 主动发送消息
@@ -56,21 +56,21 @@ uv run feishu-bot listen --chat-id <oc_xxxxxxxxxxxx>
 
 ```bash
 # 发送 Markdown 消息（--chat-id 为必填项）
-uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> --message "**你好！** 这是一条来自 CLI 的消息"
+uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --message "**你好！** 这是一条来自 CLI 的消息"
 
 # 发送纯文本消息
-uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> -m "纯文本消息" --type text
+uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> -m "纯文本消息" --type text
 
 # 发送本地文件或图片（支持同时指定多个文件及附带文本说明）
-uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> --file "./report.pdf" "./chart.png" -m "请查收本期分析报告"
+uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --file "./report.pdf" "./chart.png" -m "请查收本期分析报告"
 
 # 从标准输入读取长文本/大段 Markdown（管道传输）
-cat report.md | uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> --stdin
+cat report.md | uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --stdin
 # 或使用 -m -
-cat report.md | uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> -m -
+cat report.md | uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> -m -
 
 # 交互式终端输入长文本（按 Ctrl+Z 回车或 Ctrl+D 结束输入）
-uv run feishu-bot send --chat-id <oc_xxxxxxxxxxxx> --stdin
+uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --stdin
 ```
 
 ## 测试与代码检查
