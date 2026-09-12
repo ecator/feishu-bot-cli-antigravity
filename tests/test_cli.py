@@ -244,3 +244,48 @@ async def test_run_send_reads_dash_stdin(monkeypatch):
             message_type="markdown",
         )
 
+
+def test_cli_parser_work_dir():
+    parser = create_parser()
+
+    # listen 子命令支持 --work-dir
+    args1 = parser.parse_args(["listen", "--work-dir", "/custom/path"])
+    assert args1.work_dir == "/custom/path"
+
+    # listen 子命令支持简写 -w
+    args2 = parser.parse_args(["listen", "-w", "/custom/path2"])
+    assert args2.work_dir == "/custom/path2"
+
+    # 根 parser 不再支持 --work-dir，在子命令前传参应报错
+    with pytest.raises(SystemExit):
+        parser.parse_args(["-w", "/custom/path3", "listen"])
+
+    # send 子命令不支持 --work-dir
+    with pytest.raises(SystemExit):
+        parser.parse_args(["send", "-c", "oc_123", "-m", "hi", "-w", "/custom/path"])
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_listen")
+def test_cli_main_listen_with_work_dir(mock_run_listen, tmp_path, monkeypatch):
+    monkeypatch.setenv("LARK_APP_ID", "cli_test")
+    monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
+
+    ret = main(["listen", "--work-dir", str(tmp_path)])
+    assert ret == 0
+    mock_run_listen.assert_called_once()
+    assert mock_run_listen.call_args.kwargs["work_dir"] == str(tmp_path)
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_listen")
+def test_cli_main_listen_with_nonexistent_work_dir(mock_run_listen, tmp_path, monkeypatch):
+    monkeypatch.setenv("LARK_APP_ID", "cli_test")
+    monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
+
+    nonexistent = str(tmp_path / "does_not_exist")
+    ret = main(["listen", "--work-dir", nonexistent])
+    assert ret == 1
+    mock_run_listen.assert_not_called()
+
+
+
+

@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -31,12 +32,15 @@ class FeishuBotChannel:
         filter_chat_id: str | None = None,
         session_manager: AgentSessionManager | None = None,
         channel: FeishuChannel | None = None,
+        work_dir: str | Path | None = None,
     ):
         self.config = config
         self.config.validate()
 
         self.filter_chat_id = filter_chat_id.strip() if filter_chat_id else None
-        self.session_manager = session_manager or AgentSessionManager()
+        self.session_manager = session_manager or AgentSessionManager(
+            work_dir=work_dir
+        )
 
         if channel:
             self.channel = channel

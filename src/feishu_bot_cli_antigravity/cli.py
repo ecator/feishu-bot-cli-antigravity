@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import contextlib
 import sys
+from pathlib import Path
 
 from .channel import FeishuBotChannel
 from .config import Config
@@ -38,6 +39,13 @@ def create_parser() -> argparse.ArgumentParser:
         dest="chat_id",
         default=None,
         help="可选。若指定则仅响应该 chat_id 的消息，未指定则响应所有群/单聊",
+    )
+    listen_parser.add_argument(
+        "--work-dir",
+        "-w",
+        dest="work_dir",
+        default=None,
+        help="工作目录路径 (默认: 当前路径，影响 mcp、skills 与 AGENTS.md 的加载)",
     )
 
     # 2. 命令行主动发送消息子命令 (send)
@@ -131,9 +139,19 @@ def resolve_send_message(args: argparse.Namespace) -> str | None:
     return None
 
 
-async def run_listen(chat_id: str | None, config: Config) -> None:
+async def run_listen(
+    chat_id: str | None,
+    config: Config,
+    work_dir: str | None = None,
+) -> None:
     """运行监听服务。"""
-    channel = FeishuBotChannel(config=config, filter_chat_id=chat_id)
+    if work_dir is not None and not Path(work_dir).is_dir():
+        raise FileNotFoundError(f"指定的工作目录不存在或不是有效目录: {work_dir}")
+    channel = FeishuBotChannel(
+        config=config,
+        filter_chat_id=chat_id,
+        work_dir=work_dir,
+    )
     await channel.start_listening()
 
 
@@ -199,7 +217,11 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command in ("listen", "serve"):
-            asyncio.run(run_listen(args.chat_id, config))
+            work_dir = getattr(args, "work_dir", None)
+            if work_dir is not None and not Path(work_dir).is_dir():
+                print(f"[ERROR] 指定的工作目录不存在或不是有效目录: {work_dir}", file=sys.stderr)
+                return 1
+            asyncio.run(run_listen(args.chat_id, config, work_dir=work_dir))
         elif args.command == "send":
             message = resolve_send_message(args)
             asyncio.run(

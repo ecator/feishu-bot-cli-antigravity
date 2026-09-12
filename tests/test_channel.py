@@ -253,3 +253,12 @@ async def test_send_message_single_file_string(tmp_path, mock_config, mock_sdk_c
         "chat_test",
         {"file": {"source": b"a,b,c", "file_name": "data.csv"}},
     )
+
+
+def test_feishu_bot_channel_work_dir(tmp_path, mock_config, mock_sdk_channel):
+    channel = FeishuBotChannel(
+        config=mock_config,
+        channel=mock_sdk_channel,
+        work_dir=tmp_path,
+    )
+    assert channel.session_manager.work_dir == tmp_path

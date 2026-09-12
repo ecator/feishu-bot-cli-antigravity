@@ -36,6 +36,8 @@ GEMINI_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 LOG_LEVEL=INFO
 ```
 
+`LARK_APP_ID`和`LARK_APP_SECRET`在[飞书开放平台](https://open.feishu.cn)创建机器人后获取，注意机器人需要添加消息权限以及事件监听。
+
 ## 命令行使用
 
 ### 1. 监听服务
@@ -43,8 +45,13 @@ LOG_LEVEL=INFO
 启动长连接监听消息并自动调用 Agent 回复：
 
 ```bash
-# 监听所有会话
+# 监听所有会话（默认使用当前路径）
 uvx feishu-bot-cli-antigravity listen
+
+# 指定工作目录（影响 mcp、skills 与 AGENTS.md 的加载）
+uvx feishu-bot-cli-antigravity listen --work-dir /path/to/workspace
+# 或使用简写 -w
+uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
 
 # 仅监听并响应指定 chat_id 的消息
 uvx feishu-bot-cli-antigravity listen --chat-id <oc_xxxxxxxxxxxx>
@@ -71,6 +78,52 @@ cat report.md | uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> 
 
 # 交互式终端输入长文本（按 Ctrl+Z 回车或 Ctrl+D 结束输入）
 uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --stdin
+```
+
+## 工作目录 (`work-dir`)
+
+在运行 `listen` 监听服务时，可以通过 `--work-dir` / `-w` 参数显式指定 Agent 运行的工作目录（若未指定，默认使用执行命令时的当前路径）：
+
+```bash
+uvx feishu-bot-cli-antigravity listen --work-dir /path/to/workspace
+# 或使用简写 -w
+uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
+```
+
+指定的工作目录会作为 Antigravity SDK 的底层工作区（`workspaces`），统一控制以下资源的检索与加载位置：
+
+1. **`AGENTS.md`（行为指令与规则）**：自动读取工作目录根路径下的 `AGENTS.md` 文件，作为该 Agent 的工作区指令与业务规则约束。
+2. **Agent Skills（技能工具扩展）**：自动将工作目录下的 `.agents/skills` 目录作为技能根路径，检索并注入符合规范的自定义技能包。
+3. **MCP 配置文件**：默认寻找工作目录下的 `.agents/mcp_config.json` 文件以接入 MCP 服务工具。
+
+### MCP (Model Context Protocol) 支持
+
+本工具支持通过 MCP 为 Agent 接入外部工具：
+- 默认自动检测并加载当前工作目录下的 `.agents/mcp_config.json` 配置文件；若不存在则跳过加载，正常启动。
+- 支持 `stdio`（本地可执行程序/脚本）与 `http`/`sse`（远程流式服务）两种传输模式。
+- 支持在配置中使用 `${VAR}` 语法自动展开系统环境变量。
+
+#### `.agents/mcp_config.json` 配置示例
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+    },
+    "remote-service": {
+      "serverUrl": "https://mcp.example.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${MCP_TOKEN}"
+      }
+    }
+  }
+}
 ```
 
 ## 测试与代码检查
