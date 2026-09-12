@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from .channel import FeishuBotChannel
-from .config import Config
+from .config import Config, load_env_file
 from .utils import setup_logging
 
 
@@ -45,7 +45,7 @@ def create_parser() -> argparse.ArgumentParser:
         "-w",
         dest="work_dir",
         default=None,
-        help="工作目录路径 (默认: 当前路径，影响 mcp、skills 与 AGENTS.md 的加载)",
+        help="工作目录路径 (默认: 当前路径，影响 .env、mcp、skills 与 AGENTS.md 的加载)",
     )
 
     # 2. 命令行主动发送消息子命令 (send)
@@ -203,6 +203,20 @@ def main(argv: list[str] | None = None) -> int:
     parser = create_parser()
     args = parser.parse_args(argv)
 
+    # 统一在此处调用一次 load_env_file 加载环境变量：若指定了 work_dir 且存在 .env 则优先加载，否则从当前目录查找加载
+    work_dir = getattr(args, "work_dir", None)
+    target_env = None
+    if work_dir is not None:
+        work_path = Path(work_dir)
+        if not work_path.is_dir():
+            print(f"[ERROR] 指定的工作目录不存在或不是有效目录: {work_dir}", file=sys.stderr)
+            return 1
+        work_env = work_path / ".env"
+        if work_env.is_file():
+            target_env = work_env
+
+    load_env_file(target_env)
+
     config = Config.from_env()
     if args.log_level:
         config.log_level = args.log_level
@@ -217,10 +231,6 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command in ("listen", "serve"):
-            work_dir = getattr(args, "work_dir", None)
-            if work_dir is not None and not Path(work_dir).is_dir():
-                print(f"[ERROR] 指定的工作目录不存在或不是有效目录: {work_dir}", file=sys.stderr)
-                return 1
             asyncio.run(run_listen(args.chat_id, config, work_dir=work_dir))
         elif args.command == "send":
             message = resolve_send_message(args)

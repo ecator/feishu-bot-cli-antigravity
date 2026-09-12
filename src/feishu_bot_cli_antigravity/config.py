@@ -2,11 +2,27 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
-# 加载 .env 环境变量
-load_dotenv(override=True)
+
+def load_env_file(env_path: str | Path | None = None) -> bool:
+    """加载 .env 环境变量文件。
+
+    若指定 env_path 则优先加载该文件；
+    若未指定，则通过 find_dotenv(usecwd=True) 自动从当前工作目录及上层目录查找并加载。
+    """
+    if env_path:
+        target = Path(env_path)
+        if target.is_file():
+            return load_dotenv(target, override=True)
+        return False
+
+    cwd_env = find_dotenv(usecwd=True)
+    if cwd_env:
+        return load_dotenv(cwd_env, override=True)
+    return False
 
 
 @dataclass

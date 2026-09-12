@@ -48,7 +48,7 @@ LOG_LEVEL=INFO
 # 监听所有会话（默认使用当前路径）
 uvx feishu-bot-cli-antigravity listen
 
-# 指定工作目录（影响 mcp、skills 与 AGENTS.md 的加载）
+# 指定工作目录（影响 .env、mcp、skills 与 AGENTS.md 的加载）
 uvx feishu-bot-cli-antigravity listen --work-dir /path/to/workspace
 # 或使用简写 -w
 uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
@@ -92,9 +92,10 @@ uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
 
 指定的工作目录会作为 Antigravity SDK 的底层工作区（`workspaces`），统一控制以下资源的检索与加载位置：
 
-1. **`AGENTS.md`（行为指令与规则）**：自动读取工作目录根路径下的 `AGENTS.md` 文件，作为该 Agent 的工作区指令与业务规则约束。
-2. **Agent Skills（技能工具扩展）**：自动将工作目录下的 `.agents/skills` 目录作为技能根路径，检索并注入符合规范的自定义技能包。
-3. **MCP 配置文件**：默认寻找工作目录下的 `.agents/mcp_config.json` 文件以接入 MCP 服务工具。
+1. **`.env`（环境变量配置）**：若指定了工作目录且该目录下存在 `.env` 文件，优先加载该工作目录下的 `.env`（未指定时默认从当前终端执行命令所在目录查找）。
+2. **`AGENTS.md`（行为指令与规则）**：自动读取工作目录根路径下的 `AGENTS.md` 文件，作为该 Agent 的工作区指令与业务规则约束。
+3. **Agent Skills（技能工具扩展）**：自动将工作目录下的 `.agents/skills` 目录作为技能根路径，检索并注入符合规范的自定义技能包。
+4. **MCP 配置文件**：默认寻找工作目录下的 `.agents/mcp_config.json` 文件以接入 MCP 服务工具。
 
 ### MCP (Model Context Protocol) 支持
 

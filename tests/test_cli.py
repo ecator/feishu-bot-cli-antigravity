@@ -50,13 +50,16 @@ def test_cli_parser_send_with_file():
     assert args_multi.file_paths == ["test.png", "data.csv"]
 
 
-def test_cli_main_validation_failure(monkeypatch):
-    # 清空环境变量以触发校验错误
+@patch("feishu_bot_cli_antigravity.cli.run_listen")
+def test_cli_main_validation_failure(mock_run_listen, monkeypatch, tmp_path):
+    # 清空环境变量并在空临时目录下运行以触发校验错误（避免受当前仓库 .env 影响）
     monkeypatch.setenv("LARK_APP_ID", "")
     monkeypatch.setenv("LARK_APP_SECRET", "")
+    monkeypatch.chdir(tmp_path)
 
     ret = main(["listen"])
     assert ret == 1
+    mock_run_listen.assert_not_called()
 
 
 @patch("feishu_bot_cli_antigravity.cli.run_send")
@@ -285,6 +288,27 @@ def test_cli_main_listen_with_nonexistent_work_dir(mock_run_listen, tmp_path, mo
     ret = main(["listen", "--work-dir", nonexistent])
     assert ret == 1
     mock_run_listen.assert_not_called()
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_listen")
+def test_cli_main_listen_loads_env_from_work_dir(mock_run_listen, tmp_path, monkeypatch):
+    # 模拟外部环境变量未设置，凭据仅存在于 work_dir 下的 .env 中
+    monkeypatch.delenv("LARK_APP_ID", raising=False)
+    monkeypatch.delenv("LARK_APP_SECRET", raising=False)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "LARK_APP_ID=from_workdir_id\nLARK_APP_SECRET=from_workdir_secret\n",
+        encoding="utf-8",
+    )
+
+    ret = main(["listen", "--work-dir", str(tmp_path)])
+    assert ret == 0
+    mock_run_listen.assert_called_once()
+    passed_config = mock_run_listen.call_args.args[1]
+    assert passed_config.lark_app_id == "from_workdir_id"
+    assert passed_config.lark_app_secret == "from_workdir_secret"
+
 
 
 
