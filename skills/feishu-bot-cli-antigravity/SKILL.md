@@ -33,9 +33,23 @@ metadata:
 ```bash
 # 推荐使用 uvx 直接执行
 uvx feishu-bot-cli-antigravity send --chat-id <oc_xxx> [选项]
+
+# 若需要指定工作目录以加载该目录下的 .env 环境变量等配置（--work-dir 为全局参数，置于子命令前）：
+uvx feishu-bot-cli-antigravity --work-dir /path/to/workspace send --chat-id <oc_xxx> [选项]
+# 或使用简写 -w
+uvx feishu-bot-cli-antigravity -w /path/to/workspace send --chat-id <oc_xxx> [选项]
 ```
 
 ### 参数一览表
+
+#### 全局参数（置于子命令前）
+
+| 参数 | 缩写 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| `--work-dir` | `-w` | 否 | 当前路径 | 工作目录路径（优先加载该目录下的 `.env` 环境变量文件；在 `listen` 模式下还会加载工作区技能、mcp 与 AGENTS.md） |
+| `--log-level` | 无 | 否 | 环境变量 | 日志输出级别：`DEBUG`, `INFO`, `WARNING`, `ERROR`（默认: `INFO`） |
+
+#### `send` 子命令参数
 
 | 参数 | 缩写 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -44,7 +58,6 @@ uvx feishu-bot-cli-antigravity send --chat-id <oc_xxx> [选项]
 | `--stdin` | `-s` | 否 | `False` | 显式指示从标准输入读取消息内容（与 `-m` 互斥） |
 | `--file` | `-f` | 否 | `None` | 要发送的本地文件路径（支持同时传入多个路径，空格分隔） |
 | `--type` | `-t` | 否 | `markdown` | 消息格式类型：`markdown`（默认）或 `text` |
-| `--log-level` | 无 | 否 | 环境变量 | 日志输出级别：`DEBUG`, `INFO`, `WARNING`, `ERROR` |
 
 > [!NOTE]
 > `--message`、`--stdin` 和 `--file` 必须至少提供一项。
@@ -166,8 +179,10 @@ uvx feishu-bot-cli-antigravity listen
 # 仅限定监听指定会话（防止打扰其他群）
 uvx feishu-bot-cli-antigravity listen -c oc_xxxxxxxxxxxx
 
-# 显式指定工作目录（自动挂载该目录下的 skills、mcp 与 AGENTS.md）
-uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
+# 显式指定工作目录（局参数置于子命令前，自动挂载该目录下的 .env、skills、mcp 与 AGENTS.md）
+uvx feishu-bot-cli-antigravity -w /path/to/workspace listen
+# 或使用完整参数
+uvx feishu-bot-cli-antigravity --work-dir /path/to/workspace listen
 ```
 
 - **思考中反馈**：机器人接收到用户提问时，会自动为用户消息打上思考中的表情 Reaction。

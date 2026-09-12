@@ -53,10 +53,10 @@ AGY_IMAGE_MODEL=gemini-3.1-flash-lite-image
 # 监听所有会话（默认使用当前路径）
 uvx feishu-bot-cli-antigravity listen
 
-# 指定工作目录（影响 .env、mcp、skills 与 AGENTS.md 的加载）
-uvx feishu-bot-cli-antigravity listen --work-dir /path/to/workspace
+# 指定工作目录（全局参数，置于子命令前，影响 .env、mcp、skills 与 AGENTS.md 的加载）
+uvx feishu-bot-cli-antigravity --work-dir /path/to/workspace listen
 # 或使用简写 -w
-uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
+uvx feishu-bot-cli-antigravity -w /path/to/workspace listen
 
 # 仅监听并响应指定 chat_id 的消息
 uvx feishu-bot-cli-antigravity listen --chat-id <oc_xxxxxxxxxxxx>
@@ -69,6 +69,9 @@ uvx feishu-bot-cli-antigravity listen --chat-id <oc_xxxxxxxxxxxx>
 ```bash
 # 发送 Markdown 消息（--chat-id 为必填项）
 uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --message "**你好！** 这是一条来自 CLI 的消息"
+
+# 指定工作目录发送消息（自动加载该工作目录下的 .env 凭据）
+uvx feishu-bot-cli-antigravity -w /path/to/workspace send --chat-id <oc_xxxxxxxxxxxx> -m "已加载指定工作区环境配置"
 
 # 发送纯文本消息
 uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> -m "纯文本消息" --type text
@@ -95,22 +98,26 @@ npx skills add https://github.com/ecator/feishu-bot-cli-antigravity --skill feis
 
 安装这个 SKILL 后，**只需要告诉 Agent 飞书会话 ID（`chat_id`）**，Agent 即可学会如何主动向用户发送飞书消息、Markdown 报告以及文件附件。
 
-## 工作目录 (`work-dir`)
+## 全局工作目录参数 (`--work-dir`)
 
-在运行 `listen` 监听服务时，可以通过 `--work-dir` / `-w` 参数显式指定 Agent 运行的工作目录（若未指定，默认使用执行命令时的当前路径）：
+`--work-dir` / `-w` 为全局参数，可在 `listen` 或 `send` 子命令前指定（若未指定，默认使用执行命令时的当前路径）：
 
 ```bash
-uvx feishu-bot-cli-antigravity listen --work-dir /path/to/workspace
+# 配合 listen 模式使用
+uvx feishu-bot-cli-antigravity --work-dir /path/to/workspace listen
 # 或使用简写 -w
-uvx feishu-bot-cli-antigravity listen -w /path/to/workspace
+uvx feishu-bot-cli-antigravity -w /path/to/workspace listen
+
+# 配合 send 模式使用（自动优先加载该工作目录下的 .env 凭据）
+uvx feishu-bot-cli-antigravity -w /path/to/workspace send --chat-id <oc_xxxxxxxxxxxx> -m "消息内容"
 ```
 
-指定的工作目录会作为 Antigravity SDK 的底层工作区（`workspaces`），统一控制以下资源的检索与加载位置：
+指定的工作目录会统一控制以下资源的检索与加载位置：
 
-1. **`.env`（环境变量配置）**：若指定了工作目录且该目录下存在 `.env` 文件，优先加载该工作目录下的 `.env`（未指定时默认从当前终端执行命令所在目录查找）。
-2. **`AGENTS.md`（行为指令与规则）**：自动读取工作目录根路径下的 `AGENTS.md` 文件，作为该 Agent 的工作区指令与业务规则约束。
-3. **Agent Skills（技能工具扩展）**：自动将工作目录下的 `.agents/skills` 目录作为技能根路径，检索并注入符合规范的自定义技能包。
-4. **MCP 配置文件**：默认寻找工作目录下的 `.agents/mcp_config.json` 文件以接入 MCP 服务工具。
+1. **`.env`（环境变量配置）**：若指定了工作目录且该目录下存在 `.env` 文件，优先加载该工作目录下的 `.env`（未指定时默认从当前终端执行命令所在目录查找）。在 `send` 和 `listen` 模式下均生效！
+2. **`AGENTS.md`（行为指令与规则）**：自动读取工作目录根路径下的 `AGENTS.md` 文件，作为该 Agent 的工作区指令与业务规则约束（`listen` 模式生效）。
+3. **Agent Skills（技能工具扩展）**：自动将工作目录下的 `.agents/skills` 目录作为技能根路径，检索并注入符合规范的自定义技能包（`listen` 模式生效）。
+4. **MCP 配置文件**：默认寻找工作目录下的 `.agents/mcp_config.json` 文件以接入 MCP 服务工具（`listen` 模式生效）。
 
 ### MCP (Model Context Protocol) 支持
 

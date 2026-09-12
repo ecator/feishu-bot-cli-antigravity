@@ -15,6 +15,13 @@ def create_parser() -> argparse.ArgumentParser:
         description="基于 Antigravity SDK 的飞书私人 AI 助手工具",
     )
     parser.add_argument(
+        "--work-dir",
+        "-w",
+        dest="work_dir",
+        default=None,
+        help="工作目录路径 (默认: 当前路径，影响 .env、mcp、skills 与 AGENTS.md 的加载)",
+    )
+    parser.add_argument(
         "--log-level",
         default=None,
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -39,13 +46,6 @@ def create_parser() -> argparse.ArgumentParser:
         dest="chat_id",
         default=None,
         help="可选。若指定则仅响应该 chat_id 的消息，未指定则响应所有群/单聊",
-    )
-    listen_parser.add_argument(
-        "--work-dir",
-        "-w",
-        dest="work_dir",
-        default=None,
-        help="工作目录路径 (默认: 当前路径，影响 .env、mcp、skills 与 AGENTS.md 的加载)",
     )
 
     # 2. 命令行主动发送消息子命令 (send)

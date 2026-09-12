@@ -251,19 +251,28 @@ async def test_run_send_reads_dash_stdin(monkeypatch):
 def test_cli_parser_work_dir():
     parser = create_parser()
 
-    # listen 子命令支持 --work-dir
-    args1 = parser.parse_args(["listen", "--work-dir", "/custom/path"])
+    # 根 parser 级别支持 --work-dir (放在子命令前)
+    args1 = parser.parse_args(["--work-dir", "/custom/path", "listen"])
     assert args1.work_dir == "/custom/path"
 
-    # listen 子命令支持简写 -w
-    args2 = parser.parse_args(["listen", "-w", "/custom/path2"])
+    # 根 parser 级别支持简写 -w (放在子命令前)
+    args2 = parser.parse_args(["-w", "/custom/path2", "listen"])
     assert args2.work_dir == "/custom/path2"
 
-    # 根 parser 不再支持 --work-dir，在子命令前传参应报错
-    with pytest.raises(SystemExit):
-        parser.parse_args(["-w", "/custom/path3", "listen"])
+    # send 子命令配合全局 --work-dir
+    args3 = parser.parse_args(["--work-dir", "/custom/path3", "send", "-c", "oc_123", "-m", "hi"])
+    assert args3.work_dir == "/custom/path3"
+    assert args3.chat_id == "oc_123"
+    assert args3.message == "hi"
 
-    # send 子命令不支持 --work-dir
+    # send 子命令配合全局 -w
+    args4 = parser.parse_args(["-w", "/custom/path4", "send", "-c", "oc_123", "-m", "hi"])
+    assert args4.work_dir == "/custom/path4"
+
+    # 子命令后传参应报错 (已移至根 parser)
+    with pytest.raises(SystemExit):
+        parser.parse_args(["listen", "--work-dir", "/custom/path"])
+
     with pytest.raises(SystemExit):
         parser.parse_args(["send", "-c", "oc_123", "-m", "hi", "-w", "/custom/path"])
 
@@ -273,7 +282,7 @@ def test_cli_main_listen_with_work_dir(mock_run_listen, tmp_path, monkeypatch):
     monkeypatch.setenv("LARK_APP_ID", "cli_test")
     monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
 
-    ret = main(["listen", "--work-dir", str(tmp_path)])
+    ret = main(["--work-dir", str(tmp_path), "listen"])
     assert ret == 0
     mock_run_listen.assert_called_once()
     assert mock_run_listen.call_args.kwargs["work_dir"] == str(tmp_path)
@@ -285,7 +294,7 @@ def test_cli_main_listen_with_nonexistent_work_dir(mock_run_listen, tmp_path, mo
     monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
 
     nonexistent = str(tmp_path / "does_not_exist")
-    ret = main(["listen", "--work-dir", nonexistent])
+    ret = main(["--work-dir", nonexistent, "listen"])
     assert ret == 1
     mock_run_listen.assert_not_called()
 
@@ -302,12 +311,44 @@ def test_cli_main_listen_loads_env_from_work_dir(mock_run_listen, tmp_path, monk
         encoding="utf-8",
     )
 
-    ret = main(["listen", "--work-dir", str(tmp_path)])
+    ret = main(["--work-dir", str(tmp_path), "listen"])
     assert ret == 0
     mock_run_listen.assert_called_once()
     passed_config = mock_run_listen.call_args.args[1]
     assert passed_config.lark_app_id == "from_workdir_id"
     assert passed_config.lark_app_secret == "from_workdir_secret"
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_send")
+def test_cli_main_send_loads_env_from_work_dir(mock_run_send, tmp_path, monkeypatch):
+    # 模拟外部环境变量未设置，凭据仅存在于 work_dir 下的 .env 中
+    monkeypatch.delenv("LARK_APP_ID", raising=False)
+    monkeypatch.delenv("LARK_APP_SECRET", raising=False)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "LARK_APP_ID=from_send_workdir_id\nLARK_APP_SECRET=from_send_workdir_secret\n",
+        encoding="utf-8",
+    )
+
+    ret = main(["-w", str(tmp_path), "send", "-c", "oc_test_send", "-m", "hello"])
+    assert ret == 0
+    mock_run_send.assert_called_once()
+    passed_config = mock_run_send.call_args.kwargs["config"]
+    assert passed_config.lark_app_id == "from_send_workdir_id"
+    assert passed_config.lark_app_secret == "from_send_workdir_secret"
+
+
+@patch("feishu_bot_cli_antigravity.cli.run_send")
+def test_cli_main_send_with_nonexistent_work_dir(mock_run_send, tmp_path, monkeypatch):
+    monkeypatch.setenv("LARK_APP_ID", "cli_test")
+    monkeypatch.setenv("LARK_APP_SECRET", "sec_test")
+
+    nonexistent = str(tmp_path / "does_not_exist")
+    ret = main(["--work-dir", nonexistent, "send", "-c", "oc_test", "-m", "hi"])
+    assert ret == 1
+    mock_run_send.assert_not_called()
+
 
 
 
