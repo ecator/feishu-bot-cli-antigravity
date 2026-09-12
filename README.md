@@ -80,6 +80,16 @@ cat report.md | uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> 
 uvx feishu-bot-cli-antigravity send --chat-id <oc_xxxxxxxxxxxx> --stdin
 ```
 
+## Agent 技能安装 (Skill)
+
+如果你的 AI Agent 支持技能扩展（如 Antigravity、Claude Code 等），可以通过以下命令一键安装：
+
+```bash
+npx skills add https://github.com/ecator/feishu-bot-cli-antigravity --skill feishu-bot-cli-antigravity
+```
+
+安装这个 SKILL 后，**只需要告诉 Agent 飞书会话 ID（`chat_id`）**，Agent 即可学会如何主动向用户发送飞书消息、Markdown 报告以及文件附件。
+
 ## 工作目录 (`work-dir`)
 
 在运行 `listen` 监听服务时，可以通过 `--work-dir` / `-w` 参数显式指定 Agent 运行的工作目录（若未指定，默认使用执行命令时的当前路径）：
