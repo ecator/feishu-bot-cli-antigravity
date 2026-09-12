@@ -58,3 +58,26 @@ def test_load_env_file_from_cwd(tmp_path, monkeypatch):
     assert config.lark_app_id == "cwd_id_111"
     assert config.lark_app_secret == "cwd_sec_222"
 
+
+def test_config_agy_models(monkeypatch):
+    monkeypatch.setenv("LARK_APP_ID", "cli_test_id")
+    monkeypatch.setenv("LARK_APP_SECRET", "test_secret")
+    monkeypatch.setenv("AGY_MODEL", "gemini-2.5-pro")
+    monkeypatch.setenv("AGY_IMAGE_MODEL", "imagen-3.0-generate-002")
+
+    config = Config.from_env()
+    assert config.agy_model == "gemini-2.5-pro"
+    assert config.agy_image_model == "imagen-3.0-generate-002"
+
+
+def test_config_agy_models_empty_or_unset(monkeypatch):
+    monkeypatch.setenv("LARK_APP_ID", "cli_test_id")
+    monkeypatch.setenv("LARK_APP_SECRET", "test_secret")
+    monkeypatch.setenv("AGY_MODEL", "   ")
+    monkeypatch.delenv("AGY_IMAGE_MODEL", raising=False)
+
+    config = Config.from_env()
+    assert config.agy_model is None
+    assert config.agy_image_model is None
+
+

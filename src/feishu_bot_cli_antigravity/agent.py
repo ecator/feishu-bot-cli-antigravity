@@ -180,13 +180,22 @@ class AgentSessionManager:
         self,
         work_dir: str | Path | None = None,
         agent_factory: Callable[[], Agent] | None = None,
+        model: str | None = None,
+        image_model: str | None = None,
     ):
         self._exit_stack = AsyncExitStack()
         self._sessions: dict[str, Agent] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self.work_dir = Path(work_dir) if work_dir else Path.cwd()
+        self.model = model
+        self.image_model = image_model
 
         logger.info("初始化 Agent 会话管理器 | 工作目录: %s", self.work_dir.resolve())
+        if self.model:
+            logger.info("配置主模型: %s", self.model)
+        if self.image_model:
+            logger.info("配置生图模型: %s", self.image_model)
+
         mcp_file = self.work_dir / ".agents" / "mcp_config.json"
         if mcp_file.is_file():
             logger.info("检测到 MCP 配置文件: %s (将在会话创建时加载)", mcp_file.resolve())
@@ -194,13 +203,19 @@ class AgentSessionManager:
             logger.info("未检测到 MCP 配置文件: %s", mcp_file.resolve())
 
         self._agent_factory = agent_factory or (
-            lambda: self._default_agent_factory(work_dir=self.work_dir)
+            lambda: self._default_agent_factory(
+                work_dir=self.work_dir,
+                model=self.model,
+                image_model=self.image_model,
+            )
         )
 
     @classmethod
     def _default_agent_factory(
         cls,
         work_dir: str | Path | None = None,
+        model: str | None = None,
+        image_model: str | None = None,
     ) -> Agent:
         target_work_dir = Path(work_dir) if work_dir else Path.cwd()
         resolved_work_dir = str(target_work_dir.resolve())
@@ -208,7 +223,22 @@ class AgentSessionManager:
         mcp_config_file = target_work_dir / ".agents" / "mcp_config.json"
         mcp_servers = load_mcp_config(config_path=mcp_config_file)
 
+        models: list[types.ModelTarget] = []
+        if image_model:
+            logger.info("应用生图模型配置: %s", image_model)
+            models.append(
+                types.ModelTarget(
+                    name=image_model,
+                    types=[types.ModelType.IMAGE],
+                )
+            )
+
+        if model:
+            logger.info("应用主模型配置: %s", model)
+
         config = LocalAgentConfig(
+            model=model,
+            models=models if models else None,
             system_instructions=SYSTEM_INSTRUCTIONS,
             policies=[policy.allow_all()],
             workspaces=[resolved_work_dir],

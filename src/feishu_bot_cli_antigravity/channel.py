@@ -39,7 +39,9 @@ class FeishuBotChannel:
 
         self.filter_chat_id = filter_chat_id.strip() if filter_chat_id else None
         self.session_manager = session_manager or AgentSessionManager(
-            work_dir=work_dir
+            work_dir=work_dir,
+            model=self.config.agy_model,
+            image_model=self.config.agy_image_model,
         )
 
         if channel:

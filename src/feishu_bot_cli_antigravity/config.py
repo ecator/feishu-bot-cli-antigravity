@@ -33,15 +33,21 @@ class Config:
     lark_app_secret: str = ""
     lark_domain: str | None = None
     log_level: str = "INFO"
+    agy_model: str | None = None
+    agy_image_model: str | None = None
 
     @classmethod
     def from_env(cls) -> "Config":
         """从环境变量读取配置。"""
+        agy_model = os.getenv("AGY_MODEL", "").strip() or None
+        agy_image_model = os.getenv("AGY_IMAGE_MODEL", "").strip() or None
         return cls(
             lark_app_id=os.getenv("LARK_APP_ID", "").strip(),
             lark_app_secret=os.getenv("LARK_APP_SECRET", "").strip(),
             lark_domain=os.getenv("LARK_DOMAIN"),
             log_level=os.getenv("LOG_LEVEL", "INFO").strip(),
+            agy_model=agy_model,
+            agy_image_model=agy_image_model,
         )
 
     def validate(self) -> None:

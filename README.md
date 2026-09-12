@@ -34,9 +34,14 @@ LARK_APP_ID=cli_xxxxxxxxxxxxxx
 LARK_APP_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 GEMINI_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 LOG_LEVEL=INFO
+# 可选：指定 Agent 对话主模型
+AGY_MODEL=gemini-3.8-flash
+# 可选：指定 Agent 生图模型
+AGY_IMAGE_MODEL=gemini-3.1-flash-lite-image
 ```
 
 `LARK_APP_ID`和`LARK_APP_SECRET`在[飞书开放平台](https://open.feishu.cn)创建机器人后获取，注意机器人需要添加消息权限以及事件监听。
+
 
 ## 命令行使用
 

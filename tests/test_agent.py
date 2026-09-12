@@ -325,3 +325,55 @@ def test_agent_session_manager_init_logging(tmp_path, caplog):
     assert "未检测到 MCP 配置文件" in caplog.text
 
 
+def test_default_agent_factory_custom_models(tmp_path):
+    from google.antigravity import types
+
+    from feishu_bot_cli_antigravity.agent import AgentSessionManager
+
+    agent = AgentSessionManager._default_agent_factory(
+        work_dir=tmp_path,
+        model="gemini-custom-text",
+        image_model="custom-image-model",
+    )
+
+    model_map = {m.types[0]: m.name for m in agent._config.models}
+    assert model_map[types.ModelType.TEXT] == "gemini-custom-text"
+    assert model_map[types.ModelType.IMAGE] == "custom-image-model"
+    assert agent._config.model == "gemini-custom-text"
+
+
+def test_default_agent_factory_default_models(tmp_path):
+    from google.antigravity import types
+
+    from feishu_bot_cli_antigravity.agent import AgentSessionManager
+
+    agent = AgentSessionManager._default_agent_factory(work_dir=tmp_path)
+    assert agent._config.model is None
+    # 默认回退到 SDK 内置文本和生图模型
+    model_map = {m.types[0]: m.name for m in agent._config.models}
+    assert model_map[types.ModelType.TEXT] == "gemini-3.8-flash"
+    assert model_map[types.ModelType.IMAGE] == "gemini-3.1-flash-lite-image"
+
+
+def test_agent_session_manager_model_parameters(tmp_path, caplog):
+    import logging
+
+    from feishu_bot_cli_antigravity.agent import AgentSessionManager
+
+    with caplog.at_level(logging.INFO):
+        manager = AgentSessionManager(
+            work_dir=tmp_path,
+            model="my-text-model",
+            image_model="my-image-model",
+        )
+
+    assert "配置主模型: my-text-model" in caplog.text
+    assert "配置生图模型: my-image-model" in caplog.text
+    assert manager.model == "my-text-model"
+    assert manager.image_model == "my-image-model"
+
+    agent = manager._agent_factory()
+    assert agent._config.model == "my-text-model"
+
+
+

@@ -262,3 +262,20 @@ def test_feishu_bot_channel_work_dir(tmp_path, mock_config, mock_sdk_channel):
         work_dir=tmp_path,
     )
     assert channel.session_manager.work_dir == tmp_path
+
+
+def test_feishu_bot_channel_passes_models_to_session_manager(tmp_path, mock_sdk_channel):
+    config = Config(
+        lark_app_id="cli_test",
+        lark_app_secret="sec_test",
+        agy_model="my-text-model",
+        agy_image_model="my-image-model",
+    )
+    channel = FeishuBotChannel(
+        config=config,
+        channel=mock_sdk_channel,
+        work_dir=tmp_path,
+    )
+    assert channel.session_manager.model == "my-text-model"
+    assert channel.session_manager.image_model == "my-image-model"
+
