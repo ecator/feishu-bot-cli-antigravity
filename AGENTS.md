@@ -26,6 +26,10 @@ flowchart LR
 - 请使用`uv`进行python包管理。
 - `uv run pytest`进行测试。
 
+## 编码规范
+
+- **导入风格**：包内部模块间引用（`src/feishu_bot_cli_antigravity` 内部各模块及 `__init__.py`）统一使用显式相对导入（如 `from . import __version__`、`from .channel import FeishuBotChannel`），避免在包内使用绝对导入。
+
 ## 目录结构
 
 - `src\feishu_bot_cli_antigravity`
