@@ -173,6 +173,17 @@ def load_mcp_config(
     return mcp_servers
 
 
+def _resolve_default_endpoint() -> types.ModelEndpoint:
+    """自动解析生图模型所需的默认端点 (Gemini Developer API 或 Vertex AI)。"""
+    is_vertex = (
+        os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "").lower() in ("true", "1")
+        or os.getenv("GOOGLE_GENAI_USE_ENTERPRISE", "").lower() in ("true", "1")
+    )
+    if is_vertex:
+        return types.VertexEndpoint()
+    return types.GeminiAPIEndpoint()
+
+
 class AgentSessionManager:
     """基于 AsyncExitStack 的内存会话管理器，自动管理各会话 Agent 生命周期。"""
 
@@ -225,11 +236,13 @@ class AgentSessionManager:
 
         models: list[types.ModelTarget] = []
         if image_model:
-            logger.info("应用生图模型配置: %s", image_model)
+            endpoint = _resolve_default_endpoint()
+            logger.info("应用生图模型配置: %s (端点: %s)", image_model, type(endpoint).__name__)
             models.append(
                 types.ModelTarget(
                     name=image_model,
                     types=[types.ModelType.IMAGE],
+                    endpoint=endpoint,
                 )
             )
 

@@ -325,7 +325,8 @@ def test_agent_session_manager_init_logging(tmp_path, caplog):
     assert "未检测到 MCP 配置文件" in caplog.text
 
 
-def test_default_agent_factory_custom_models(tmp_path):
+def test_default_agent_factory_custom_models(tmp_path, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-api-key")
     from google.antigravity import types
 
     from feishu_bot_cli_antigravity.agent import AgentSessionManager
@@ -340,6 +341,11 @@ def test_default_agent_factory_custom_models(tmp_path):
     assert model_map[types.ModelType.TEXT] == "gemini-custom-text"
     assert model_map[types.ModelType.IMAGE] == "custom-image-model"
     assert agent._config.model == "gemini-custom-text"
+    assert all(m.endpoint is not None for m in agent._config.models)
+
+    # 验证策略层的模型终端点校验通过，不会抛出 "must have an endpoint configured"
+    strategy = agent._config.create_strategy(tool_runner=None, hook_runner=None)
+    strategy._validate_connection()
 
 
 def test_default_agent_factory_default_models(tmp_path):
