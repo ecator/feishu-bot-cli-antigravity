@@ -3,7 +3,6 @@ name: feishu-bot-cli-antigravity
 description: 指导如何使用 feishu-bot-cli-antigravity 工具进行飞书消息发送（包含 Markdown、纯文本、管道标准输入、单/多文件附件、图文说明）以及服务监听。
 metadata:
   author: Martin
-  version: "0.2.0"
 ---
 
 # Feishu Bot CLI Antigravity 技能手册
@@ -21,6 +20,7 @@ metadata:
 ---
 
 ## 2. 获取目标会话 ID (`chat_id`)
+- **大多数情况下由用户告知**；如果用户没有提供，请**主动引导用户提供目标 `chat_id`**。
 - 群聊 `chat_id` 通常以 `oc_` 开头（例如 `oc_a1b2c3d4e5f6...`）。
 - 可以在飞书群设置中查看，或运行 `listen` 模式并在群里发送任意一条消息，在控制台日志中查看捕获的 `chat_id`。
 
