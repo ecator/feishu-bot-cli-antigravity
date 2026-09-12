@@ -36,5 +36,5 @@ flowchart LR
   - `utils.py`：工具类
 - `tests`
   - `test_*.py`：测试文件
-- `src\feishu-bot-cli-antigravity`
+- `skills\feishu-bot-cli-antigravity`
   - 本工具配套的SKILL文档
